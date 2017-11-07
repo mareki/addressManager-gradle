@@ -1,5 +1,5 @@
 
-description = 'gradle root project for address manager application'
+description = 'gradle root project for address manager application.'
 
 if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
 	assert hasProperty('JDK7_HOME'): "Set the property 'JDK7_HOME' in your your gradle.properties!"
