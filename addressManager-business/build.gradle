@@ -1,6 +1,8 @@
 
 description = 'addressManager business - contains business logic'
 
+// TODO integration tests!!
+
 apply plugin: 'java'
 
 dependencies {
