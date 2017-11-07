@@ -1,0 +1,71 @@
+
+description = 'addressManager web - contains web resources (static and dynamic)'
+
+apply plugin: 'war'
+
+task explodedWar(type: Copy) {
+    into "$buildDir/${project.name}-${project.version}.war"
+    includeEmptyDirs = true
+	with war
+}
+// war.dependsOn explodedWar	// <- exploded version is always generated
+explodedWar.dependsOn war 	// <- exploded version is only built if requested 
+
+// Wirkt nur bei 'src/main/resources'
+processResources {
+	expand projectVersion: project.version
+	expand(project.properties)
+	doLast {
+		println "processResources.destinationDir: " + relativePath(processResources.destinationDir)
+	}
+}
+
+war {
+	from('src/main/webapp') {
+	     include '**/*.html'
+	     def projectVersion = project.rootProject.version
+	     println "project.version: " + projectVersion
+		 // expand(project.properties)		
+		 // or	 
+		 // expand projectVersion: project.version
+		 // or                             
+		 // expand('projectVersion': "$project.version")
+		 // or      
+		 filter org.apache.tools.ant.filters.ReplaceTokens, // -> use @project.version@ instead of $ because its ANT based!         
+		 	tokens: [ "project.version": project.rootProject.version ]              
+	}
+}
+
+dependencies {
+
+	compile project(':addressManager-domain')
+	compile project(':addressManager-business')
+
+	// same as maven scope 'provided'. Listed dependencies won't be added to the WAR: 
+	// https://docs.gradle.org/current/userguide/war_plugin.html
+	providedCompile (
+		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion",
+	)
+	
+	// seam security
+	compile ("org.jboss.seam.security:seam-security-api:$seamSecurityVersion")
+	compile ("org.jboss.seam.security:seam-security:$seamSecurityVersion")
+
+	// seam faces
+	compile ("org.jboss.seam.faces:seam-faces-api:$seamSecurityVersion")
+	compile ("org.jboss.seam.faces:seam-faces:$seamSecurityVersion")
+	
+	// seam faces needs joda and prettyfaces
+	compile ("joda-time:joda-time:$jodaTimeVersion")
+	compile ("com.ocpsoft:prettyfaces-jsf2:$prettyFacesVersion")
+		
+
+	runtime ("org.richfaces.ui:richfaces-components-ui:$richFacesVersion")
+	runtime ("org.richfaces.core:richfaces-core-impl:$richFacesVersion")
+	
+	// exclude compile dependencies of other projects which are provided by the container, see http://issues.gradle.org/browse/GRADLE-1317
+	providedRuntime (
+			"org.hibernate:hibernate-validator:$hibernateValidationVersion",
+			"org.hibernate:hibernate-core:$hibernateVersion"
+	)
+}
