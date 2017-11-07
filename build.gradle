@@ -1,0 +1,122 @@
+
+description = 'gradle root project for address manager application'
+
+if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
+	assert hasProperty('JDK7_HOME'): "Set the property 'JDK7_HOME' in your your gradle.properties!"
+}
+
+// The "allprojects" section is for the modules being built by Gradle. 
+// In a multi-project gradle build, you have a rootProject and the subprojects. The combination of both is allprojects.
+// When to use allprojects vs. subprojects depends on the circumstances. Often you'll use both. For example, code related 
+// plugins like the Java plugin are typically applied to subprojects, because in many builds the root project doesn't contain any code.  
+allprojects {
+	group = "com.acme.am"
+	version = "1.0.0-SNAPSHOT"
+	
+	//apply plugin: 'com.jfrog.artifactory' // makes task 'artifactoryPublish' available
+	apply plugin: 'maven'
+	apply from: "${rootProject.projectDir}/showInternals.gradle"
+
+	uploadArchives {
+		repositories {
+			mavenDeployer {
+				repository (url: "${artifactory_releases_url}"){
+					authentication(userName:"${artifactory_user}", password: "${artifactory_password}")
+				}
+				snapshotRepository(url: "${artifactory_snapshots_url}"){
+					authentication(userName:"${artifactory_user}", password: "${artifactory_password}")
+				}
+			}
+		}
+	}
+}
+
+/*
+// The "buildscript" configuration section is for gradle itself 
+// (i.e. changes to how gradle is able to perform the build). 
+buildscript {
+	repositories {
+    		jcenter()
+  	}
+  	dependencies {
+    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
+    		classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+  	}
+}
+*/
+
+configurations.all {
+	// https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
+	resolutionStrategy {
+		failOnVersionConflict()
+	}
+}
+ 
+// can be listed with:
+// > gradle properties
+// => can/should be placed in gradle.properties in master 
+ext {
+	javaEEVersion = '1.0.0.Final'
+	easyMockVersion = '3.1'
+	needleVersion = '2.1'
+	junitVersion = '4.10'
+	slf4jVersion = '1.7.25'
+	hibernateVersion = '4.1.1.Final'
+	hibernateValidationVersion = '4.2.0.Final'
+	hasqldbVersion = '2.2.6'
+	seamSecurityVersion = '3.1.0.Final'
+	jodaTimeVersion = '2.1'
+	prettyFacesVersion = '3.3.0'
+	richFacesVersion = '4.0.0.Final'
+}
+
+// (common plugins, tasks and properties for all subprojects
+subprojects {
+
+	apply plugin: "java"
+	sourceCompatibility = targetJavaVersion
+	targetCompatibility = targetJavaVersion
+	
+	repositories {
+	    mavenLocal()
+	    jcenter()
+	    mavenCentral()
+	    
+	    maven { url "http://central.maven.org/maven2/" }
+	    maven { url "${artifactory_releases_url}" }
+	    maven { url "${artifactory_snapshots_url}" }
+	}
+	
+	dependencies {
+		compile group: 'org.slf4j', name: 'slf4j-log4j12', version: "$slf4jVersion"
+		compile group: 'org.slf4j', name: 'slf4j-api', version: "$slf4jVersion"
+		
+		testCompile (
+			"junit:junit:$junitVersion",
+		)
+	}
+
+	/*
+	// needed to ommit -> warning: [options] bootstrap class path not set in conjunction with -source 1.7
+	tasks.withType(JavaCompile) {
+    		options.bootClasspath = "$JDK7_HOME/jre/lib/rt.jar"
+	} 
+	*/
+}
+
+/*
+ * load environment specific properties on startup. 
+ * Examples:
+ * 		gradle [tasks]  				-> environment set to dev (default)
+ * 		gradle -Penv=prod [tasks]	-> environment set to prod
+ */
+loadConfiguration()
+def loadConfiguration() {
+	def environment = hasProperty('env') ? env : 'dev'
+	project.ext.set('environment', environment)
+	println "Environment is set to $ext.environment"
+	
+	def configFile = file('environment.groovy')
+	def config = new ConfigSlurper(environment).parse(configFile.toURI().toURL())
+	project.ext.set('environment', config)
+}

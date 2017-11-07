@@ -1,0 +1,136 @@
+
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dependencies.AbstractDependency;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationPublications;
+
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+}
+
+task showEnv {
+	def taskName = "showEnv" 
+    doLast {
+    		println "taskName: " + taskName
+        println "compileJava: " + compileJava.toString()
+        println "processResources: " + processResources.toString()
+       	println "compileJava.destinationDir: " + relativePath(compileJava.destinationDir)
+        println "processResources.destinationDir: " + relativePath(processResources.destinationDir)
+ 
+ 		println()
+  	    println "All SourceSets"
+ 	    sourceSets.each{ Object s -> println("- " + s)}
+ 	    sourceSets.each { DefaultSourceSet s -> printSourceSet(s) }
+		println()
+        
+       	println "#### ---------------------------------------------- ####"
+       	println "configurations.all"
+        configurations.all.each { DefaultConfiguration dc -> printConfiguration(dc)}
+    }
+    // processResources.dependsOn show
+}
+
+showEnv {
+	doLast {
+		println "--- show env done ---"
+	}
+}
+
+task printProperties {
+	def taskName = "showEnv" 
+    doLast {
+	    printProps("compileJava.properties", compileJava.getProperties())
+        printProps("processResources.properties", processResources.getProperties())
+        printProps("classes.properties", classes.getProperties())
+        printProps("jar.properties", jar.getProperties())
+        printProps("assemble.properties", assemble.getProperties())
+        printProps("compileTestJava.properties", compileTestJava.getProperties())
+       	printProps("war.properties", war.getProperties())
+       	printProps("build.properties", build.getProperties())
+   		printProps("sourceSets.properties", sourceSets.getProperties())
+        printProps("buildEnvironment.properties", buildEnvironment.getProperties())
+      	printProps("configurations.properties", configurations.getProperties())
+       	printProps("configurations.compileClasspath.properties", configurations.compileClasspath.getProperties())
+    }
+}
+
+task printProcessResourcesTask {
+	def taskName = "printProcessResourcesTask" 
+    doLast {
+		println "printProcessResourcesTask: " + processResources.getClass()
+		println " - processResources.filteringCharset: " + processResources.filteringCharset
+		println " - processResources.source:"
+		processResources.source.each {File f -> println "    - " + relativePath(f) }
+		println " - processResources.excludes:"
+		processResources.excludes.each {String s -> println "    - " + s }
+		println " - processResources.includes:"
+		processResources.excludes.each {String s -> println "    - " + s }
+    }      
+}
+
+
+def printSourceSet(org.gradle.api.internal.tasks.DefaultSourceSet sourceSet) {
+		println "### SourceSet: " + sourceSet.name + " ###"
+
+ 	    println " - sourceSets." + sourceSet.name + ".java.srcDir: "
+ 	    sourceSet.java.srcDirs.each{ File f -> println "    - " + relativePath(f) }
+ 	    println " - sourceSets." + sourceSet.name + ".resources.srcDir: "
+ 	    sourceSet.resources.srcDirs.each{ File f -> println "    - " + relativePath(f) }
+
+        println " - sourceSets." + sourceSet.name + ".java: "
+        sourceSet.java.each{Object f -> println("    - " + relativePath(f))}
+        println " - sourceSets." + sourceSet.name + ".allJava: "
+        sourceSet.allJava.each{Object f -> println("    - " + relativePath(f))}
+        println " - sourceSets." + sourceSet.name + ".resources: "
+        sourceSet.resources.each{Object f -> println("    - " + relativePath(f))}
+        println " - "  + sourceSet.name + ".output.classesDirs: "
+        sourceSet.output.classesDirs.each{ File f ->  println "    - " + relativePath(f)}
+        println " - "  + sourceSet.name + ".output.resourcesDir: "
+        println "    - " + relativePath(sourceSet.output.resourcesDir)
+}
+
+def printConfiguration(DefaultConfiguration dc) {
+       	String intendation = "    - "
+       	println " - name: " + dc.name                                     
+       	println intendation + "description: " + dc.description                                     
+       	println intendation + "path: " + dc.path                                     
+       	println intendation + "identityPath: " + dc.identityPath                                     
+       	println "    - " + dc.name + ".artifacts: "
+        	dc.artifacts.each{ArchivePublishArtifact a -> println "        - " + a + " (" + relativePath(a.file) + ")" }
+       	println "    - " + dc.name + ".allArtifacts: (include inherited artifacts)"
+        	dc.allArtifacts.each{ArchivePublishArtifact a -> println "        - " + a + " (" + relativePath(a.file) + ")" }
+       	println "    - " + dc.name + ".dependencies: "
+        	dc.dependencies.each{AbstractDependency d -> println "        - " + d }
+       	println "    - " + dc.name + ".allDependencies: "
+        	dc.allDependencies.each{AbstractDependency d -> println "        - " + d }
+      	println "    - " + dc.name + ".outgoing (atributes): "
+        	dc.outgoing.each{DefaultConfigurationPublications d -> println "        - " + d.convertToOutgoingVariant().getAttributes() }
+      	println "    - " + dc.name + ".outgoing (artifacts): "
+        	dc.outgoing.each{DefaultConfigurationPublications d -> println "        - " + d.convertToOutgoingVariant().getArtifacts() }
+
+		if("api" != dc.name && "apiElements" != dc.name && "documentationImplementation" != dc.name
+			&& "documentationRuntimeOnly" != dc.name && "implementation" != dc.name && "runtimeElements" != dc.name
+			&& "runtimeOnly" != dc.name && "testImplementation" != dc.name && "testRuntimeOnly" != dc.name) {
+	       	println "    - " + dc.name + ".incoming: "
+	        	dc.incoming.files.each{File f -> println "        - " + f.name }
+	       	println "    - " + dc.name + ".files.each: "
+	        	dc.files.each{File f -> println "        - " + f.name }
+	        	println  "    - " + dc.name + ".resolvedConfiguration: "
+    		    	dc.resolvedConfiguration.files.each{File f -> println "        - " + f.name}
+	    }
+ }
+
+
+// Define a method
+def printProps(title, props) {
+	println "----------------------------------------------"
+    println title
+    for(String key : props.keySet()) {
+  		String value = props.get(key);
+  		println(" - " + key + " => " + value);
+	}
+}
