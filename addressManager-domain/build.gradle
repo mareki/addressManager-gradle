@@ -1,0 +1,30 @@
+
+description = 'addressManager dao - contains DAOs'
+
+apply plugin: 'java'
+
+dependencies {
+	compileOnly (
+		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion",
+	)
+}
+
+processResources {
+	// make sure processResources is called every time, see issue http://jira.codehaus.org/browse/GRADLE-1276
+	outputs.upToDateWhen { false }
+	
+	exclude '**/persistence.xml'
+	
+	def environment = project.rootProject.ext.get('environment')
+	logger.info("Processing resources for '$project.name' using the following configuration: $environment")
+	
+	// expands property references in each file as it is copied.
+	// see http://issues.gradle.org/browse/GRADLE-1635 for issues
+	expand(dataSource: 	"$environment.dataSource", 
+		   showSQL: 		"$environment.hibernate.showSQL", 
+		   formatSQL: 	"$environment.hibernate.formatSQL", 
+		   dialect: 		"$environment.hibernate.dialect", 
+		   hbm2ddl: 		"$environment.hibernate.hbm2ddl.auto")
+	
+	rename '.*persistence.gradle.xml', 'persistence.xml'
+}

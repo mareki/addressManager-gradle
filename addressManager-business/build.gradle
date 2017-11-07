@@ -1,0 +1,31 @@
+
+description = 'addressManager business - contains business logic'
+
+apply plugin: 'java'
+
+dependencies {
+	compileOnly (
+		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion",
+	)
+
+	compile (
+		project (":addressManager-dao"),
+	)
+
+	// testCompile project(path: ':addressManager-dao', configuration: 'testJar')
+	testCompile (
+		// dependency configuration 'test-jar' provides base test classes
+		project(path: ':addressManager-dao', configuration: 'testJar'),
+		
+		"org.easymock:easymock:$easyMockVersion",
+		"de.akquinet.jbosscc:jbosscc-needle:$needleVersion",
+		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion"
+	)
+	
+	testRuntime (
+		"org.hibernate:hibernate-entitymanager:$hibernateVersion",
+		"org.hibernate:hibernate-validator:$hibernateValidationVersion",
+		"org.hsqldb:hsqldb:$hasqldbVersion"
+	)
+	
+}
