@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 import org.jboss.seam.security.annotations.SecurityBindingType;
 
 /**
- * @author <a href="mailto:moritz.zimmer@adesso.de">Moritz Zimmer</a>
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Moritz Zimmer
+ * @author Marek Iwaszkiewicz
  */
 @SecurityBindingType
 @Retention(RetentionPolicy.RUNTIME)

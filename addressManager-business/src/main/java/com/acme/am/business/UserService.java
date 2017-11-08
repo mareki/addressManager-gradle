@@ -7,8 +7,8 @@ import javax.ejb.Local;
 import com.acme.am.domain.User;
 
 /**
- * @author <a href="mailto:moritz.zimmer@adesso.de">Moritz Zimmer</a>
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Moritz Zimmer
+ * @author Marek Iwaszkiewicz
  */
 @Local
 public interface UserService {

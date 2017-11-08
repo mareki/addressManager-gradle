@@ -12,8 +12,8 @@ import org.picketlink.idm.impl.api.model.SimpleUser;
 import com.acme.am.web.qualifier.CurrentUser;
 
 /**
- * @author <a href="mailto:moritz.zimmer@adesso.de">Moritz Zimmer</a>
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Moritz Zimmer
+ * @author Marek Iwaszkiewicz
  */
 @SessionScoped
 public class CurrentUserProducer implements Serializable {

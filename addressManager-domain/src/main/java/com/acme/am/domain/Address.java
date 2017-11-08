@@ -5,8 +5,8 @@ import java.io.Serializable;
 import javax.persistence.Embeddable;
 
 /**
- * @author <a href="mailto:moritz.zimmer@adesso.de">Moritz Zimmer</a>
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Moritz Zimmer
+ * @author Marek Iwaszkiewicz
  */
 @Embeddable
 public class Address implements Serializable {

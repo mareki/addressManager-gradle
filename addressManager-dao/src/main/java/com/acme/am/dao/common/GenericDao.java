@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Generisches Interface für verschiedene DAOs.
  * 
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Marek Iwaszkiewicz
  * 
  * @param <E>
  *          Klasse der Entity.

@@ -9,8 +9,8 @@ import javax.enterprise.context.SessionScoped;
 import javax.inject.Qualifier;
 
 /**
- * @author <a href="mailto:moritz.zimmer@adesso.de">Moritz Zimmer</a>
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Moritz Zimmer
+ * @author Marek Iwaszkiewicz
  */
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)

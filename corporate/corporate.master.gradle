@@ -1,0 +1,55 @@
+import org.gradle.tooling.model.eclipse.EclipseProject;
+
+/*
+ * example of a script based plugin to enforce enterprise specific conventions to the build
+ */
+repositories {
+	maven { url "http://repository.jboss.org/nexus/content/groups/public-jboss/" }
+	mavenCentral()
+}
+
+plugins.withType(JavaPlugin) {
+
+	sourceSets { 
+		integrationTest {} // -> generates integrationTestCompile and integrationTestRuntime 
+	}
+
+	configurations {
+
+		integrationTestCompile {extendsFrom testCompile}
+		integrationTestRuntime {extendsFrom testRuntime}
+		
+		// example for a dependency configuration rule, no Eclipse link dependencies allowed 
+		all { Configuration configuration ->
+			configuration.incoming.afterResolve {
+				def eclipseLinkDependencies = configuration.resolvedConfiguration.resolvedArtifacts.findAll {
+					it.moduleVersion.id.group == "org.eclipse.persistence"
+				}
+	
+				if (eclipseLinkDependencies) {
+					throw new Exception("Found Eclipse-Link dependencies on configuration $configuration.name! - ${eclipseLinkDependencies*.moduleVersion*.id}")
+				}
+			}
+		}
+	}
+
+	dependencies {
+		testCompile "junit:junit:$junitVersion"
+
+		// https://discuss.gradle.org/t/adding-dependencies-to-a-configuration-created-from-a-custom-source-set/8801/3
+		integrationTestCompile sourceSets.main.output
+	    integrationTestCompile configurations.testCompile
+	    integrationTestCompile sourceSets.test.output
+	    integrationTestRuntime configurations.testRuntime
+	}
+
+	task integrationTest(type: Test, dependsOn: jar, description: 'Runs the integration tests.', group: 'verification') {
+	    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+		classpath = sourceSets.integrationTest.runtimeClasspath
+	}
+	// check.dependsOn integrationTest
+	integrationTest.dependsOn testClasses
+
+	// set source file encoding for all compile tasks
+	tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+}

@@ -74,6 +74,8 @@ ext {
 subprojects {
 
 	apply plugin: "java"
+	apply from: "$rootProject.projectDir/corporate/corporate.master.gradle"
+	
 	sourceCompatibility = targetJavaVersion
 	targetCompatibility = targetJavaVersion
 	

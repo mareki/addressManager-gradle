@@ -8,8 +8,8 @@ import org.jboss.seam.faces.view.config.ViewPattern;
 import com.acme.am.web.annotations.UserLoggedIn;
 
 /**
- * @author <a href="mailto:moritz.zimmer@adesso.de">Moritz Zimmer</a>
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Moritz Zimmer
+ * @author Marek Iwaszkiewicz
  */
 @ViewConfig
 public class PagesConfig {
