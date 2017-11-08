@@ -5,8 +5,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @author <a href="mailto:moritz.zimmer@adesso.de">Moritz Zimmer</a>
- * @author <a href="mailto:marek.iwaszkiewicz@akquinet.de">Marek Iwaszkiewicz</a>
+ * @author Moritz Zimmer
+ * @author Marek Iwaszkiewicz
  */
 @MappedSuperclass
 public abstract class AbstractEntity implements Serializable {

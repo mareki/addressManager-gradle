@@ -87,9 +87,9 @@ def printSourceSet(org.gradle.api.internal.tasks.DefaultSourceSet sourceSet) {
         sourceSet.allJava.each{Object f -> println("    - " + relativePath(f))}
         println " - sourceSets." + sourceSet.name + ".resources: "
         sourceSet.resources.each{Object f -> println("    - " + relativePath(f))}
-        println " - "  + sourceSet.name + ".output.classesDirs: "
+        println " - sourceSets."  + sourceSet.name + ".output.classesDirs: "
         sourceSet.output.classesDirs.each{ File f ->  println "    - " + relativePath(f)}
-        println " - "  + sourceSet.name + ".output.resourcesDir: "
+        println " - sourceSets."  + sourceSet.name + ".output.resourcesDir: "
         println "    - " + relativePath(sourceSet.output.resourcesDir)
 }
 
@@ -114,7 +114,8 @@ def printConfiguration(DefaultConfiguration dc) {
 
 		if("api" != dc.name && "apiElements" != dc.name && "documentationImplementation" != dc.name
 			&& "documentationRuntimeOnly" != dc.name && "implementation" != dc.name && "runtimeElements" != dc.name
-			&& "runtimeOnly" != dc.name && "testImplementation" != dc.name && "testRuntimeOnly" != dc.name) {
+			&& "runtimeOnly" != dc.name && "testImplementation" != dc.name && "testRuntimeOnly" != dc.name
+			&& "integrationTestImplementation" != dc.name && "integrationTestRuntimeOnly" != dc.name) {
 	       	println "    - " + dc.name + ".incoming: "
 	        	dc.incoming.files.each{File f -> println "        - " + f.name }
 	       	println "    - " + dc.name + ".files.each: "
