@@ -3,15 +3,21 @@ description = 'gradle root project for address manager application.'
 
 // read environment variables, including system properties which for instance can be passed by jenkins
 ext.systemEnv = System.getenv()
-println "systemEnv: "
-systemEnv.keySet().each { k -> println " - " + k + " -> " + systemEnv.get(k)}
-// ---
-ext.systemEnv = System.getenv()
 ext.major = systemEnv.MAJOR != null ? systemEnv.MAJOR : defaultMajor
 ext.minor = systemEnv.MINOR != null ? systemEnv.MINOR : defaultMinor
 ext.buildNumber = systemEnv.BUILD_NUMBER != null ? systemEnv.BUILD_NUMBER : defaultBuildNumber
 ext.releaseType = systemEnv.RELEASETYPE != null ? systemEnv.RELEASETYPE : defaultReleaseType
 
+// print some information of the build to stout
+println """\n
+Gradle-Build with version: $gradle.gradleVersion - http://www.gradle.org
+Gradle home: $gradle.gradleHomeDir
+Gradle user directory: $gradle.gradleUserHomeDir
+Running script: ${relativePath(buildFile)}\n"""
+
+// ---
+println "systemEnv: "
+systemEnv.keySet().each { k -> println " - " + k + " -> " + systemEnv.get(k)}
 
 if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
 	assert hasProperty('JDK7_HOME'): "Set the property 'JDK7_HOME' in your your gradle.properties!"
@@ -23,7 +29,9 @@ if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVers
 // plugins like the Java plugin are typically applied to subprojects, because in many builds the root project doesn't contain any code.  
 allprojects {
 	group = "com.acme.am"
-	version = "1.0.0-SNAPSHOT"
+	// version = "1.0.0-SNAPSHOT"
+	version = major + "." + minor + "." + buildNumber + (releaseType == "SNAPSHOT" ? "-SNAPSHOT" : releaseType)
+	println "${project.name} # version: " + version
 	
 	apply plugin: 'maven'
 	apply from: "${rootProject.projectDir}/showInternals.gradle"
@@ -39,7 +47,7 @@ allprojects {
 				}
 			}
 		}
-	}
+	} 
 }
 
 /*
