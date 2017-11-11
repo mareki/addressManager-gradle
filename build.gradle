@@ -1,6 +1,11 @@
 
 description = 'gradle root project for address manager application.'
 
+ext.systemEnv = System.getenv()
+println "systemEnv: "
+systemEnv.keySet().each { k -> println " - " + k}
+
+
 if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
 	assert hasProperty('JDK7_HOME'): "Set the property 'JDK7_HOME' in your your gradle.properties!"
 }
@@ -121,3 +126,19 @@ def loadConfiguration() {
 	def config = new ConfigSlurper(environment).parse(configFile.toURI().toURL())
 	project.ext.set('environment', config)
 }
+
+task printSourceSets {
+	doLast {
+		def sources = [
+			sourceSets.main,
+			sourceSets.test
+		]
+		// sources*.allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
+		println "sources: " +  sources // .allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
+		println "sources*.allSource: " +  sources*.allSource
+		println "sources*.allSource*.srcDirs: " +  sources*.allSource*.srcDirs
+		println "sources*.allSource*.srcDirs.flatten(): " +  sources*.allSource*.srcDirs.flatten()
+		// .allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
+	}
+}
+
