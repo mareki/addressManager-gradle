@@ -7,7 +7,7 @@ repositories {
 	maven { url "http://repository.jboss.org/nexus/content/groups/public-jboss/" }
 	mavenCentral()
 }
-
+ 
 plugins.withType(JavaPlugin) {
 
 	sourceSets { 
