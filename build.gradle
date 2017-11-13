@@ -7,7 +7,7 @@ ext.major = systemEnv.MAJOR != null ? systemEnv.MAJOR : defaultMajor
 ext.minor = systemEnv.MINOR != null ? systemEnv.MINOR : defaultMinor
 ext.buildNumber = systemEnv.BUILD_NUMBER != null ? systemEnv.BUILD_NUMBER : defaultBuildNumber
 ext.releaseType = systemEnv.RELEASETYPE != null ? systemEnv.RELEASETYPE : defaultReleaseType
- 
+  
 // print some information of the build to stout
 println """\n
 Gradle-Build with version: $gradle.gradleVersion - http://www.gradle.org
