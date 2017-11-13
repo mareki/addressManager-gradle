@@ -29,13 +29,20 @@ if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVers
 // plugins like the Java plugin are typically applied to subprojects, because in many builds the root project doesn't contain any code.  
 allprojects {
 	group = "com.acme.am"
-	// version = "1.0.0-SNAPSHOT"
-	version = major + "." + minor + "." + buildNumber + (releaseType == "SNAPSHOT" ? "-SNAPSHOT" : releaseType)
+	version = "1.0.0-SNAPSHOT"
+	// version = major + "." + minor + "." + buildNumber + (releaseType == "SNAPSHOT" ? "-SNAPSHOT" : releaseType)
 	println "${project.name} # version: " + version
 	
+	// apply plugin: 'net.nemerosa.versioning'
 	apply plugin: 'maven'
 	apply from: "${rootProject.projectDir}/showInternals.gradle"
 
+	// https://github.com/nemerosa/versioning
+	// version = versioning.info.full
+	// versioning {
+	// 	releaseMode = 'snapshot'
+	// }
+	
 	uploadArchives {
 		repositories {
 			mavenDeployer {
@@ -52,17 +59,18 @@ allprojects {
 
 /*
 // The "buildscript" configuration section is for gradle itself 
-// (i.e. changes to how gradle is able to perform the build). 
+// (i.e. changes to how gradle is able to perform the build). */
 buildscript {
 	repositories {
     		jcenter()
   	}
   	dependencies {
     		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
-    		classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+    		classpath 'net.nemerosa:versioning:2.0.0'
   	}
 }
-*/
+
 
 configurations.all {
 	// https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
