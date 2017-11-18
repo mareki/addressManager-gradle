@@ -24,37 +24,49 @@ dependencies {
 		"org.hibernate:hibernate-validator:$hibernateValidationVersion",
 		"org.hsqldb:hsqldb:$hasqldbVersion"
 	)
+}
+
+jacocoTestReport {
+
+	def addressManagerDomain = rootProject.subprojects.findAll { p -> p.getName() == "addressManager-domain" }.iterator().next();  
+
+    additionalSourceDirs = files(addressManagerDomain.sourceSets.main.allSource.srcDirs)
+	additionalClassDirs = files(addressManagerDomain.sourceSets.main.output)
 	
-	/* ---------- Test-Jar ---------*/
-	
-	/* 
-	 * https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
-	 * 
-	 * A Configuration represents a group of artifacts and their dependencies. Find more information about 
-	 * declaring dependencies to a configuration or about managing configurations in docs for ConfigurationContainer
-	*/
-	configurations { 
-		// dependency configuration providing common test classes
-		testJar 
-	}
-	
-	// https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Jar.html
-	task jarTestClasses(type: Jar, description: "Assembles a jar archive containing common test classes of project $project.name", group: 'build') {
-		// appendix = 'test-jar'
-		classifier = 'test-jar'
-		dependsOn testClasses
-		from sourceSets.test.output
-		include(
-			'com/acme/am/dao/Abstract*.class', 
-			'com/acme/am/testsupport/*.class',
-			'needle.properties', 
-			'META-INF/**')
-	}
-	
-	// https://docs.gradle.org/current/userguide/artifact_management.html
-	artifacts { 
-		testJar jarTestClasses
-		archives jar, jarTestClasses
-	}
-	
+    reports {
+        xml.enabled true
+        html.enabled true
+        csv.enabled true
+    }
+}
+
+/* ---------- Test-Jar ---------*/
+/* 
+ * https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html
+ * 
+ * A Configuration represents a group of artifacts and their dependencies. Find more information about 
+ * declaring dependencies to a configuration or about managing configurations in docs for ConfigurationContainer
+*/
+configurations { 
+	// dependency configuration providing common test classes
+	testJar 
+}
+
+// https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Jar.html
+task jarTestClasses(type: Jar, description: "Assembles a jar archive containing common test classes of project $project.name", group: 'build') {
+	// appendix = 'test-jar'
+	classifier = 'test-jar'
+	dependsOn testClasses
+	from sourceSets.test.output
+	include(
+		'com/acme/am/dao/Abstract*.class', 
+		'com/acme/am/testsupport/*.class',
+		'needle.properties', 
+		'META-INF/**')
+}
+
+// https://docs.gradle.org/current/userguide/artifact_management.html
+artifacts { 
+	testJar jarTestClasses
+	archives jar, jarTestClasses
 }

@@ -1,4 +1,10 @@
 
+/*
+plugins {
+  id "org.sonarqube" version "2.4"
+}
+*/
+
 description = 'gradle root project for address manager application.'
 
 // read environment variables, including system properties which for instance can be passed by jenkins
@@ -18,66 +24,6 @@ Running script: ${relativePath(buildFile)}\n"""
 // ---
 println "systemEnv: "
 systemEnv.keySet().each { k -> println " - " + k + " -> " + systemEnv.get(k)}
-
-if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
-	assert hasProperty('JDK7_HOME'): "Set the property 'JDK7_HOME' in your your gradle.properties!"
-}
-
-// The "allprojects" section is for the modules being built by Gradle. 
-// In a multi-project gradle build, you have a rootProject and the subprojects. The combination of both is allprojects.
-// When to use allprojects vs. subprojects depends on the circumstances. Often you'll use both. For example, code related 
-// plugins like the Java plugin are typically applied to subprojects, because in many builds the root project doesn't contain any code.  
-allprojects {
-	group = "com.acme.am"
-	version = "1.0.0-SNAPSHOT"
-	// version = major + "." + minor + "." + buildNumber + (releaseType == "SNAPSHOT" ? "-SNAPSHOT" : releaseType)
-	println "${project.name} # version: " + version
-	
-	// apply plugin: 'net.nemerosa.versioning'
-	apply plugin: 'maven'
-	apply from: "${rootProject.projectDir}/showInternals.gradle"
-
-	// https://github.com/nemerosa/versioning
-	// version = versioning.info.full
-	// versioning {
-	// 	releaseMode = 'snapshot'
-	// }
-	
-	uploadArchives {
-		repositories {
-			mavenDeployer {
-				repository (url: "${artifactory_releases_url}"){
-					authentication(userName:"${artifactory_user}", password: "${artifactory_password}")
-				}
-				snapshotRepository(url: "${artifactory_snapshots_url}"){
-					authentication(userName:"${artifactory_user}", password: "${artifactory_password}")
-				}
-			}
-		}
-	} 
-}
-
-/*
-// The "buildscript" configuration section is for gradle itself 
-// (i.e. changes to how gradle is able to perform the build). */
-buildscript {
-	repositories {
-    		jcenter()
-  	}
-  	dependencies {
-    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
-    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
-    		classpath 'net.nemerosa:versioning:2.0.0'
-  	}
-}
-
-
-configurations.all {
-	// https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
-	resolutionStrategy {
-		failOnVersionConflict()
-	}
-}
  
 // can be listed with:
 // > gradle properties
@@ -96,6 +42,113 @@ ext {
 	prettyFacesVersion = '3.3.0'
 	richFacesVersion = '4.0.0.Final'
 }
+
+if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
+	assert hasProperty('JDK7_HOME'): "Set the property 'JDK7_HOME' in your your gradle.properties!"
+}
+
+configurations.all {
+	// https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
+	resolutionStrategy {
+		failOnVersionConflict()
+	}
+}
+
+/*
+// The "buildscript" configuration section is for gradle itself 
+// (i.e. changes to how gradle is able to perform the build). */
+buildscript {
+	repositories {
+    		jcenter()
+  	}
+  	dependencies {
+    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
+    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+    		classpath 'net.nemerosa:versioning:2.0.0'
+    		
+    		// https://plugins.gradle.org/plugin/org.sonarqube
+    		classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
+  	}
+}
+
+apply plugin: "org.sonarqube"
+
+/* run sonar analysis with: 
+* ./gradlew sonarqube -Dsonar.host.url=SONAR_URL -Dsonar.login=YOUR_TOKEN
+*/
+sonarqube {
+    properties {
+    		// https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle
+        property "sonar.sourceEncoding", "UTF-8"
+        
+        // -- https://stackoverflow.com/questions/41429841/cross-module-code-coverage-with-jacoco-and-gradle-multi-module-project
+        // Es gibt verschiedene Wege die Jacoco-Ergebnisse zusammen zu fassen. Zum einen kann das
+        // Sonar selbst machen - aber das Ergebnis stimmt nicht. Zum Beispiel greift die Testabdeckung 
+        // für das Domain-Projekt nicht. Daher habe ich das hier rekonfiguriert, sodass ALLE Projekte
+        // in dieselbe jacocoTest.exec schreiben und die Ergebnisse akkumulieren.  
+        // property "sonar.junit.reportPaths", "build/jacoco/test.exec"
+        property "sonar.junit.reportPaths", "${rootProject.buildDir}/jacoco/jacocoTest.exec"
+        // properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+    }
+}
+
+// The "allprojects" section is for the modules being built by Gradle. 
+// In a multi-project gradle build, you have a rootProject and the subprojects. The combination of both is allprojects.
+// When to use allprojects vs. subprojects depends on the circumstances. Often you'll use both. For example, code related 
+// plugins like the Java plugin are typically applied to subprojects, because in many builds the root project doesn't contain any code.  
+allprojects {
+	group = "com.acme.am"
+	version = "1.0.0-SNAPSHOT"
+	// version = major + "." + minor + "." + buildNumber + (releaseType == "SNAPSHOT" ? "-SNAPSHOT" : releaseType)
+	println "${project.name} # version: " + version
+	
+	// apply plugin: 'net.nemerosa.versioning'
+	apply plugin: 'maven'
+	apply plugin: "jacoco"
+	apply from: "${rootProject.projectDir}/showInternals.gradle"
+	// apply plugin: 'org.sonarqube'
+	
+	// https://github.com/nemerosa/versioning
+	// version = versioning.info.full
+	// versioning {
+	// 	releaseMode = 'snapshot'
+	// }
+	
+	uploadArchives {
+		repositories {
+			mavenDeployer {
+				repository (url: "${artifactory_releases_url}"){
+					authentication(userName:"${artifactory_user}", password: "${artifactory_password}")
+				}
+				snapshotRepository(url: "${artifactory_snapshots_url}"){
+					authentication(userName:"${artifactory_user}", password: "${artifactory_password}")
+				}
+			}
+		}
+	}
+}
+
+jacocoTestReport {
+
+    reports {
+        xml.enabled true
+        html.enabled true
+        csv.enabled true
+    }
+}
+
+project(":addressManager-web") {
+    sonarqube {
+        skipProject = true
+    }
+}
+/*
+project(":addressManager-domain") {
+    sonarqube {
+        skipProject = true
+    }
+}
+*/
 
 // (common plugins, tasks and properties for all subprojects
 subprojects {
@@ -131,6 +184,20 @@ subprojects {
     		options.bootClasspath = "$JDK7_HOME/jre/lib/rt.jar"
 	} 
 	*/
+	
+	test {
+	    jacoco {
+	        append = true
+	        destinationFile = file("${rootProject.buildDir}/jacoco/jacocoTest.exec")
+	    }
+	}
+	
+	sonarqube {
+	    properties {
+	    		// https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle
+	        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+	    }
+	}
 }
 
 /*
@@ -156,12 +223,20 @@ task printSourceSets {
 			sourceSets.main,
 			sourceSets.test
 		]
+		println sourceSets
 		// sources*.allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
 		println "sources: " +  sources // .allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
 		println "sources*.allSource: " +  sources*.allSource
 		println "sources*.allSource*.srcDirs: " +  sources*.allSource*.srcDirs
 		println "sources*.allSource*.srcDirs.flatten(): " +  sources*.allSource*.srcDirs.flatten()
 		// .allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
+		subprojects.each { p -> println "project: " + p.path  + ", sourceSets: " + p.sourceSets}
+		println ""
+		subprojects.each { p -> println "project: " + p.path  + ", sourceSets.integrationTest.allSource.srcDirs: " + p.sourceSets.integrationTest.allSource.srcDirs}
+		println "rootProject.subprojects: " + rootProject.subprojects  // -> java.util.TreeSet
+		
+		def addressManagerDomain = rootProject.subprojects.findAll { p -> p.getName() == "addressManager-domain" }.iterator().next();  
+		println "rootProject.subprojects [addressManager-domain]: " + addressManagerDomain
+		println "addressManagerDomain.sourceSets.main.allSource.srcDirs" + addressManagerDomain.sourceSets.main.allSource.srcDirs
 	}
 }
-

@@ -1,0 +1,20 @@
+
+// Damit das hier geht, siehe: https://docs.gradle.org/current/userguide/init_scripts.html 
+
+buildscript {
+	repositories {
+    		jcenter()
+  	}
+  	dependencies {
+    		// https://plugins.gradle.org/plugin/org.sonarqube
+    		classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
+  	}
+}
+
+apply plugin: "org.sonarqube"
+
+sonarqube {
+    properties {
+        property "sonar.sourceEncoding", "UTF-8"
+    }
+}
