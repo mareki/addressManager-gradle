@@ -51,7 +51,7 @@ plugins.withType(JavaPlugin) {
 
 		// http://www.eclemma.org/jacoco/trunk/doc/agent.html
 		// use JaCoCo agent to record execution coverage data
-		// jvmArgs "-javaagent:${configurations.jacocoAgent.asPath}=destfile=${rootProject.buildDir}/jacoco/jacocoTest-it.exec,append=true"
+		// jvmArgs "-javaagent:$configurations.jacoco.asPath=destfile=$buildDir/jacoco-int.exec"
 	}
 	// check.dependsOn integrationTest
 	integrationTest.dependsOn test

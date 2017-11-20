@@ -1,5 +1,6 @@
 package com.acme.am.business.it;
 
+<<<<<<< HEAD
 import java.util.List;
 
 import javax.inject.Inject;
