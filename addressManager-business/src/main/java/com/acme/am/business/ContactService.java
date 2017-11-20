@@ -18,6 +18,6 @@ public interface ContactService {
   
   void saveContact(final Contact contact);
 
-  void deleteContact(final Contact contact);
+  void deleteContact(final Long contactId);
 
 }

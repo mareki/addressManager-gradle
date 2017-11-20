@@ -6,12 +6,14 @@ description = 'addressManager business - contains business logic'
 apply plugin: 'java'
 
 dependencies {
+	
 	compileOnly (
-		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion",
+		"org.jboss.spec:jboss-javaee-7.0:$javaEEVersion",
 	)
 
 	compile (
 		project (":addressManager-dao"),
+		"org.jboss.solder:solder-impl:$solderVersion"
 	)
 
 	// testCompile project(path: ':addressManager-dao', configuration: 'testJar')
@@ -21,13 +23,21 @@ dependencies {
 		
 		"org.easymock:easymock:$easyMockVersion",
 		"de.akquinet.jbosscc:jbosscc-needle:$needleVersion",
-		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion"
+		"org.jboss.spec:jboss-javaee-7.0:$javaEEVersion"
 	)
 	
 	testRuntime (
 		"org.hibernate:hibernate-entitymanager:$hibernateVersion",
 		"org.hibernate:hibernate-validator:$hibernateValidationVersion",
 		"org.hsqldb:hsqldb:$hasqldbVersion"
+	)
+
+	integrationTestCompile (
+		"org.jboss.arquillian.junit:arquillian-junit-container:$arquillianJunitVersion"
+	)
+	
+	integrationTestRuntime (
+		"org.wildfly:wildfly-arquillian-container-managed:$arquillianContainerVersion"
 	)
 	
 }

@@ -34,13 +34,16 @@ ext {
 	needleVersion = '2.1'
 	junitVersion = '4.10'
 	slf4jVersion = '1.7.25'
-	hibernateVersion = '4.1.1.Final'
-	hibernateValidationVersion = '4.2.0.Final'
+	hibernateVersion = '4.3.7.Final'
+	hibernateValidationVersion = '5.1.3.Final'
 	hasqldbVersion = '2.2.6'
 	seamSecurityVersion = '3.1.0.Final'
 	jodaTimeVersion = '2.1'
 	prettyFacesVersion = '3.3.0'
 	richFacesVersion = '4.0.0.Final'
+	arquillianJunitVersion		= '1.1.6.Final'
+	arquillianContainerVersion	= '8.2.1.Final'
+	solderVersion = '3.1.1.Final'
 }
 
 if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
@@ -87,8 +90,7 @@ sonarqube {
         // für das Domain-Projekt nicht. Daher habe ich das hier rekonfiguriert, sodass ALLE Projekte
         // in dieselbe jacocoTest.exec schreiben und die Ergebnisse akkumulieren.  
         // property "sonar.junit.reportPaths", "build/jacoco/test.exec"
-        property "sonar.junit.reportPaths", "${rootProject.buildDir}/jacoco/jacocoTest.exec"
-        // properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+        property "sonar.jacoco.reportPaths", "${rootProject.buildDir}/jacoco/jacocoTest.exec,${rootProject.buildDir}/jacoco/jacocoTest-it.exec"
     }
 }
 
@@ -127,12 +129,14 @@ allprojects {
 		}
 	}
 
+	// ?? greift das überhaupt ??
 	jacocoTestReport {
 	    reports {
-	        xml.enabled false
+	        xml.enabled true
 	        html.enabled true
 	        csv.enabled false
-	        html.destination file("${buildDir}/reports/jacoco")
+	        html.destination file("${buildDir}/reports")
+	        xml.destination file("${buildDir}/reports/xml")
 	    }
 	}
 
@@ -154,6 +158,8 @@ project(":addressManager-domain") {
 // (common plugins, tasks and properties for all subprojects
 subprojects {
 
+	// https://docs.gradle.org/current/userguide/eclipse_plugin.html
+	apply plugin: 'eclipse-wtp'
 	apply plugin: "java"
 	apply from: "$rootProject.projectDir/corporate/corporate.master.gradle"
 	
@@ -165,6 +171,7 @@ subprojects {
 	    jcenter()
 	    mavenCentral()
 	    
+	    maven { url "https://mvnrepository.com/repos/jboss-releases/" }
 	    maven { url "http://central.maven.org/maven2/" }
 	    maven { url "${artifactory_releases_url}" }
 	    maven { url "${artifactory_snapshots_url}" }
@@ -193,12 +200,27 @@ subprojects {
 	    }
 	}
 	
+	integrationTest {
+	    jacoco {
+	        append = true
+	        destinationFile = file("${rootProject.buildDir}/jacoco/jacocoTest-it.exec")
+	    }
+	}
+	
 	sonarqube {
 	    properties {
 	    		// https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle
 	        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
 	    }
 	}
+	
+	eclipse {
+	    classpath {
+	        plusConfigurations.add configurations.integrationTestCompile
+	        plusConfigurations.add configurations.integrationTestRuntime
+	    }
+	} 
+	
 }
 
 /*
@@ -241,3 +263,11 @@ task printSourceSets {
 		println "addressManagerDomain.sourceSets.main.allSource.srcDirs" + addressManagerDomain.sourceSets.main.allSource.srcDirs
 	}
 }
+
+task printJacoco {
+	doLast {
+		println "test.testResultsDir:  " + "${project.testReportDir} "
+	  	// println "Dollar{configurations.jacoco.asPath}: " + "${configurations.jacocoAgent.asPath}"   
+	}
+ }
+

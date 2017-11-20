@@ -6,7 +6,7 @@ apply plugin: 'java'
 dependencies {
 	
 	compileOnly (
-		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion",
+		"org.jboss.spec:jboss-javaee-7.0:$javaEEVersion",
 	)
 
 	compile (
@@ -16,28 +16,21 @@ dependencies {
 	testCompile (
 		"org.easymock:easymock:$easyMockVersion",
 		"de.akquinet.jbosscc:jbosscc-needle:$needleVersion",
-		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion"
+		"org.jboss.spec:jboss-javaee-7.0:$javaEEVersion"
 	)
 	
 	testRuntime (
 		"org.hibernate:hibernate-entitymanager:$hibernateVersion",
 		"org.hibernate:hibernate-validator:$hibernateValidationVersion",
-		"org.hsqldb:hsqldb:$hasqldbVersion"
+		"org.hsqldb:hsqldb:$hasqldbVersion",
+		"com.sun.el:el-ri:1.0"
 	)
 }
 
 jacocoTestReport {
-
 	def addressManagerDomain = rootProject.subprojects.findAll { p -> p.getName() == "addressManager-domain" }.iterator().next();  
-
     additionalSourceDirs = files(addressManagerDomain.sourceSets.main.allSource.srcDirs)
 	additionalClassDirs = files(addressManagerDomain.sourceSets.main.output)
-	
-    reports {
-        xml.enabled true
-        html.enabled true
-        csv.enabled true
-    }
 }
 
 /* ---------- Test-Jar ---------*/

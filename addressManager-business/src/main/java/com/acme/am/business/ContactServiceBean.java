@@ -16,25 +16,28 @@ import com.acme.am.domain.User;
 @Stateless
 public class ContactServiceBean implements ContactService {
 
-  @EJB
-  private ContactDao contactDao;
-  
-  // -------------- interface method implementations ------------------------------------
+	@EJB
+	private ContactDao contactDao;
+
+	// -------------- interface method implementations
+	// ------------------------------------
 
 	@Override
-  public List<Contact> loadContactsForUser(User user) {
-	  return contactDao.findForUser(user);
-  }
+	public List<Contact> loadContactsForUser(User user) {
+		return contactDao.findForUser(user);
+	}
 
 	@Override
-  public void saveContact(Contact contact) {
+	public void saveContact(Contact contact) {
 		contactDao.persist(contact);
-  }
+	}
 
 	@Override
-  public void deleteContact(Contact contact) {
-		contactDao.delete(contact);
-  }
-
+	public void deleteContact(final Long contactId) {
+		Contact contact = contactDao.load(contactId);
+		if (contact != null) {
+			contactDao.delete(contact);
+		}
+	}
 
 }

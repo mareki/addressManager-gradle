@@ -16,8 +16,8 @@ plugins.withType(JavaPlugin) {
 
 	configurations {
 
-		integrationTestCompile {extendsFrom testCompile}
-		integrationTestRuntime {extendsFrom testRuntime}
+		// integrationTestCompile {extendsFrom testCompile}
+		// integrationTestRuntime {extendsFrom testRuntime}
 		
 		// example for a dependency configuration rule, no Eclipse link dependencies allowed 
 		all { Configuration configuration ->
@@ -39,16 +39,22 @@ plugins.withType(JavaPlugin) {
 		// https://discuss.gradle.org/t/adding-dependencies-to-a-configuration-created-from-a-custom-source-set/8801/3
 		integrationTestCompile sourceSets.main.output
 	    integrationTestCompile configurations.testCompile
-	    integrationTestCompile sourceSets.test.output
-	    integrationTestRuntime configurations.testRuntime
+	    // integrationTestCompile sourceSets.test.output
+	    // integrationTestRuntime configurations.testRuntime
 	}
 
 	task integrationTest(type: Test, dependsOn: jar, description: 'Runs the integration tests.', group: 'verification') {
 	    testClassesDirs = sourceSets.integrationTest.output.classesDirs
 		classpath = sourceSets.integrationTest.runtimeClasspath
+
+		systemProperties['jar.path'] = jar.archivePath
+
+		// http://www.eclemma.org/jacoco/trunk/doc/agent.html
+		// use JaCoCo agent to record execution coverage data
+		// jvmArgs "-javaagent:${configurations.jacocoAgent.asPath}=destfile=${rootProject.buildDir}/jacoco/jacocoTest-it.exec,append=true"
 	}
 	// check.dependsOn integrationTest
-	integrationTest.dependsOn testClasses
+	integrationTest.dependsOn test
 
 	// set source file encoding for all compile tasks
 	tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
