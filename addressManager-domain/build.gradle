@@ -5,7 +5,7 @@ apply plugin: 'java'
 
 dependencies {
 	compileOnly (
-		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion",
+		"org.jboss.spec:jboss-javaee-7.0:$javaEEVersion",
 	)
 }
 

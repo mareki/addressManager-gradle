@@ -4,9 +4,6 @@ import java.util.List;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
-
-import org.apache.log4j.Logger;
 
 import com.acme.am.dao.ContactDao;
 import com.acme.am.dao.UserDao;
@@ -20,9 +17,6 @@ import com.acme.am.domain.User;
  */
 @Stateless
 public class UserServiceBean implements UserService {
-
-	@Inject
-	private Logger log;
 
 	@EJB
 	private UserDao userDao;
@@ -55,13 +49,10 @@ public class UserServiceBean implements UserService {
 
 	@Override
 	public void removeUser(User user) {
-		log.debug(String.format("removing user %s", user != null ? user.getLogin() : "??null??"));
 
 		List<Contact> tasksToRemove = taskDao.findForUser(user);
 
 		if (!tasksToRemove.isEmpty()) {
-			log.debug(String.format("user %s has %s tasks which have to be deleted as well", user.getLogin(),
-					tasksToRemove.size()));
 
 			for (Contact task : tasksToRemove) {
 				taskDao.delete(task);

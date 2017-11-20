@@ -34,13 +34,16 @@ ext {
 	needleVersion = '2.1'
 	junitVersion = '4.10'
 	slf4jVersion = '1.7.25'
-	hibernateVersion = '4.1.1.Final'
-	hibernateValidationVersion = '4.2.0.Final'
+	hibernateVersion = '4.3.7.Final'
+	hibernateValidationVersion = '5.1.3.Final'
 	hasqldbVersion = '2.2.6'
 	seamSecurityVersion = '3.1.0.Final'
 	jodaTimeVersion = '2.1'
 	prettyFacesVersion = '3.3.0'
 	richFacesVersion = '4.0.0.Final'
+	arquillianJunitVersion		= '1.1.6.Final'
+	arquillianContainerVersion	= '8.2.1.Final'
+	solderVersion = '3.1.1.Final'
 }
 
 if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
@@ -154,6 +157,8 @@ project(":addressManager-domain") {
 // (common plugins, tasks and properties for all subprojects
 subprojects {
 
+	// https://docs.gradle.org/current/userguide/eclipse_plugin.html
+	apply plugin: 'eclipse-wtp'
 	apply plugin: "java"
 	apply from: "$rootProject.projectDir/corporate/corporate.master.gradle"
 	
@@ -165,6 +170,7 @@ subprojects {
 	    jcenter()
 	    mavenCentral()
 	    
+	    maven { url "https://mvnrepository.com/repos/jboss-releases/" }
 	    maven { url "http://central.maven.org/maven2/" }
 	    maven { url "${artifactory_releases_url}" }
 	    maven { url "${artifactory_snapshots_url}" }
@@ -199,6 +205,14 @@ subprojects {
 	        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
 	    }
 	}
+	
+	eclipse {
+	    classpath {
+	        plusConfigurations.add configurations.integrationTestCompile
+	        plusConfigurations.add configurations.integrationTestRuntime
+	    }
+	} 
+	
 }
 
 /*

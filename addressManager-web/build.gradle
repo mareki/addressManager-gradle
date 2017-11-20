@@ -44,7 +44,7 @@ dependencies {
 	// same as maven scope 'provided'. Listed dependencies won't be added to the WAR: 
 	// https://docs.gradle.org/current/userguide/war_plugin.html
 	providedCompile (
-		"org.jboss.spec:jboss-javaee-6.0:$javaEEVersion",
+		"org.jboss.spec:jboss-javaee-7.0:$javaEEVersion",
 	)
 	
 	// seam security
