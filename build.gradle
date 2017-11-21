@@ -78,6 +78,9 @@ apply plugin: "org.sonarqube"
 
 /* run sonar analysis with: 
 * ./gradlew sonarqube -Dsonar.host.url=SONAR_URL -Dsonar.login=YOUR_TOKEN
+* 
+* You can see effective values by running: 
+* ./gradlew sonarqube -Dsonar.scanner.dumpToFile=-Dsonar.scanner.dumpToFile=scanner.txt
 */
 sonarqube {
     properties {
@@ -89,7 +92,7 @@ sonarqube {
         // Sonar selbst machen - aber das Ergebnis stimmt nicht. Zum Beispiel greift die Testabdeckung 
         // für das Domain-Projekt nicht. Daher habe ich das hier rekonfiguriert, sodass ALLE Projekte
         // in dieselbe jacocoTest.exec schreiben und die Ergebnisse akkumulieren.  
-        // property "sonar.junit.reportPaths", "build/jacoco/test.exec"
+        // property "sonar.junit.reportPaths", "build/build/test-results/test,build/test-results/integrationTest"
         property "sonar.jacoco.reportPaths", "${rootProject.buildDir}/jacoco/jacocoTest.exec,${rootProject.buildDir}/jacoco/jacocoTest-it.exec"
     }
 }
@@ -127,17 +130,6 @@ allprojects {
 				}
 			}
 		}
-	}
-
-	// ?? greift das überhaupt ??
-	jacocoTestReport {
-	    reports {
-	        xml.enabled true
-	        html.enabled true
-	        csv.enabled false
-	        html.destination file("${buildDir}/reports")
-	        xml.destination file("${buildDir}/reports/xml")
-	    }
 	}
 
 }
@@ -209,8 +201,16 @@ subprojects {
 	
 	sonarqube {
 	    properties {
+       		property "sonar.sourceEncoding", "UTF-8"
 	    		// https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle
 	        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+	        // -- https://stackoverflow.com/questions/41429841/cross-module-code-coverage-with-jacoco-and-gradle-multi-module-project
+	        // Es gibt verschiedene Wege die Jacoco-Ergebnisse zusammen zu fassen. Zum einen kann das
+	        // Sonar selbst machen - aber das Ergebnis stimmt nicht. Zum Beispiel greift die Testabdeckung 
+	        // für das Domain-Projekt nicht. Daher habe ich das hier rekonfiguriert, sodass ALLE Projekte
+	        // in dieselbe jacocoTest.exec schreiben und die Ergebnisse akkumulieren.  
+	        property "sonar.junit.reportPaths", "${buildDir}/test-results/test,${buildDir}/test-results/integrationTest"
+	        // property "sonar.jacoco.reportPaths", "${buildDir}/jacoco/jacocoTest.exec,${rootProject.buildDir}/jacoco/jacocoTest-it.exec"
 	    }
 	}
 	
@@ -258,7 +258,8 @@ task printSourceSets {
 		subprojects.each { p -> println "project: " + p.path  + ", sourceSets.integrationTest.allSource.srcDirs: " + p.sourceSets.integrationTest.allSource.srcDirs}
 		println "rootProject.subprojects: " + rootProject.subprojects  // -> java.util.TreeSet
 		
-		def addressManagerDomain = rootProject.subprojects.findAll { p -> p.getName() == "addressManager-domain" }.iterator().next();  
+		// def addressManagerDomain = rootProject.subprojects.findAll { p -> p.getName() == "addressManager-domain" }.iterator().next();
+		def addressManagerDomain = project(":addressManager-domain")
 		println "rootProject.subprojects [addressManager-domain]: " + addressManagerDomain
 		println "addressManagerDomain.sourceSets.main.allSource.srcDirs" + addressManagerDomain.sourceSets.main.allSource.srcDirs
 	}

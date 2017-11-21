@@ -28,9 +28,8 @@ dependencies {
 }
 
 jacocoTestReport {
-	def addressManagerDomain = rootProject.subprojects.findAll { p -> p.getName() == "addressManager-domain" }.iterator().next();  
-    additionalSourceDirs = files(addressManagerDomain.sourceSets.main.allSource.srcDirs)
-	additionalClassDirs = files(addressManagerDomain.sourceSets.main.output)
+    additionalSourceDirs = files(project(":addressManager-domain").sourceSets.main.allSource.srcDirs)
+	additionalClassDirs = files(project(":addressManager-domain").sourceSets.main.output)
 }
 
 /* ---------- Test-Jar ---------*/
