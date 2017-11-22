@@ -29,7 +29,7 @@ public abstract class JpaGenericDao<E extends Serializable> implements GenericDa
 	/**
 	 * dient als cache, somit nur über getter zugreifen.
 	 */
-	private transient Class<E> persistentClass;
+	private Class<E> persistentClass;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -274,7 +274,7 @@ public abstract class JpaGenericDao<E extends Serializable> implements GenericDa
 	 * @return Map built from keys and values
 	 */
 	public static Map<String, Object> createParameterMap(final Object... params) {
-		final Map<String, Object> result = new HashMap<String, Object>();
+		final Map<String, Object> result = new HashMap<>();
 
 		for (int i = 0; i < params.length; i += 2) {
 			assert i + 1 < params.length : "Not enough parameters " + Arrays.asList(params);

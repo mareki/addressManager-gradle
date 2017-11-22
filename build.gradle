@@ -203,7 +203,7 @@ subprojects {
 	    properties {
        		property "sonar.sourceEncoding", "UTF-8"
 	    		// https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle
-	        properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+	        property "sonar.tests", sourceSets.integrationTest.allSource.srcDirs + sourceSets.test.allSource.srcDirs
 	        // -- https://stackoverflow.com/questions/41429841/cross-module-code-coverage-with-jacoco-and-gradle-multi-module-project
 	        // Es gibt verschiedene Wege die Jacoco-Ergebnisse zusammen zu fassen. Zum einen kann das
 	        // Sonar selbst machen - aber das Ergebnis stimmt nicht. Zum Beispiel greift die Testabdeckung 
