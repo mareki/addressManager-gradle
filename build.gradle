@@ -94,6 +94,7 @@ sonarqube {
         // in dieselbe jacocoTest.exec schreiben und die Ergebnisse akkumulieren.  
         // property "sonar.junit.reportPaths", "build/build/test-results/test,build/test-results/integrationTest"
         property "sonar.jacoco.reportPaths", "${rootProject.buildDir}/jacoco/jacocoTest.exec,${rootProject.buildDir}/jacoco/jacocoTest-it.exec"
+        property "sonar.cpd.exclusions", "file:**/domain/*.java"
     }
 }
 
