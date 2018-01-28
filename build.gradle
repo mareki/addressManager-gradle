@@ -1,8 +1,101 @@
 
+/*
+plugins {
+  id "org.sonarqube" version "2.4"
+}
+*/
+
 description = 'gradle root project for address manager application.'
+
+// read environment variables, including system properties which for instance can be passed by jenkins
+ext.systemEnv = System.getenv()
+ext.major = systemEnv.MAJOR != null ? systemEnv.MAJOR : defaultMajor
+ext.minor = systemEnv.MINOR != null ? systemEnv.MINOR : defaultMinor
+ext.buildNumber = systemEnv.BUILD_NUMBER != null ? systemEnv.BUILD_NUMBER : defaultBuildNumber
+ext.releaseType = systemEnv.RELEASETYPE != null ? systemEnv.RELEASETYPE : defaultReleaseType
+  
+// print some information of the build to stout
+println """\n
+Gradle-Build with version: $gradle.gradleVersion - http://www.gradle.org
+Gradle home: $gradle.gradleHomeDir
+Gradle user directory: $gradle.gradleUserHomeDir
+Running script: ${relativePath(buildFile)}\n"""
+ 
+// ---
+println "systemEnv: "
+systemEnv.keySet().each { k -> println " - " + k + " -> " + systemEnv.get(k)}
+ 
+// can be listed with:
+// > gradle properties
+// => can/should be placed in gradle.properties in master 
+ext {
+	javaEEVersion = '1.0.0.Final'
+	easyMockVersion = '3.1'
+	needleVersion = '2.1'
+	junitVersion = '4.10'
+	slf4jVersion = '1.7.25'
+	hibernateVersion = '4.3.7.Final'
+	hibernateValidationVersion = '5.1.3.Final'
+	hasqldbVersion = '2.2.6'
+	seamSecurityVersion = '3.1.0.Final'
+	jodaTimeVersion = '2.1'
+	prettyFacesVersion = '3.3.0'
+	richFacesVersion = '4.0.0.Final'
+	arquillianJunitVersion		= '1.1.6.Final'
+	arquillianContainerVersion	= '8.2.1.Final'
+	solderVersion = '3.1.1.Final'
+}
 
 if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVersion.VERSION_1_7.toString()) {
 	assert hasProperty('JDK7_HOME'): "Set the property 'JDK7_HOME' in your your gradle.properties!"
+}
+
+configurations.all {
+	// https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
+	resolutionStrategy {
+		failOnVersionConflict()
+	}
+}
+
+/*
+// The "buildscript" configuration section is for gradle itself 
+// (i.e. changes to how gradle is able to perform the build). */
+buildscript {
+	repositories {
+    		jcenter()
+  	}
+  	dependencies {
+    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
+    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+    		classpath 'net.nemerosa:versioning:2.0.0'
+    		
+    		// https://plugins.gradle.org/plugin/org.sonarqube
+    		classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
+  	}
+}
+
+apply plugin: "org.sonarqube"
+
+/* run sonar analysis with: 
+* ./gradlew sonarqube -Dsonar.host.url=SONAR_URL -Dsonar.login=YOUR_TOKEN
+* 
+* You can see effective values by running: 
+* ./gradlew sonarqube -Dsonar.scanner.dumpToFile=-Dsonar.scanner.dumpToFile=scanner.txt
+*/
+sonarqube {
+    properties {
+    		// https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle
+        property "sonar.sourceEncoding", "UTF-8"
+        
+        // -- https://stackoverflow.com/questions/41429841/cross-module-code-coverage-with-jacoco-and-gradle-multi-module-project
+        // Es gibt verschiedene Wege die Jacoco-Ergebnisse zusammen zu fassen. Zum einen kann das
+        // Sonar selbst machen - aber das Ergebnis stimmt nicht. Zum Beispiel greift die Testabdeckung 
+        // für das Domain-Projekt nicht. Daher habe ich das hier rekonfiguriert, sodass ALLE Projekte
+        // in dieselbe jacocoTest.exec schreiben und die Ergebnisse akkumulieren.  
+        // property "sonar.junit.reportPaths", "build/build/test-results/test,build/test-results/integrationTest"
+        property "sonar.jacoco.reportPaths", "${rootProject.buildDir}/jacoco/jacocoTest.exec,${rootProject.buildDir}/jacoco/jacocoTest-it.exec"
+        property "sonar.cpd.exclusions", "file:**/domain/*.java"
+    }
 }
 
 // The "allprojects" section is for the modules being built by Gradle. 
@@ -12,11 +105,21 @@ if(hasProperty('targetJavaVersion') && property('targetJavaVersion') == JavaVers
 allprojects {
 	group = "com.acme.am"
 	version = "1.0.0-SNAPSHOT"
+	// version = major + "." + minor + "." + buildNumber + (releaseType == "SNAPSHOT" ? "-SNAPSHOT" : releaseType)
+	println "${project.name} # version: " + version
 	
-	//apply plugin: 'com.jfrog.artifactory' // makes task 'artifactoryPublish' available
+	// apply plugin: 'net.nemerosa.versioning'
 	apply plugin: 'maven'
+	apply plugin: "jacoco"
 	apply from: "${rootProject.projectDir}/showInternals.gradle"
-
+	// apply plugin: 'org.sonarqube'
+	
+	// https://github.com/nemerosa/versioning
+	// version = versioning.info.full
+	// versioning {
+	// 	releaseMode = 'snapshot'
+	// }
+	
 	uploadArchives {
 		repositories {
 			mavenDeployer {
@@ -29,50 +132,27 @@ allprojects {
 			}
 		}
 	}
+
 }
 
+project(":addressManager-web") {
+    sonarqube {
+        skipProject = true
+    }
+}
 /*
-// The "buildscript" configuration section is for gradle itself 
-// (i.e. changes to how gradle is able to perform the build). 
-buildscript {
-	repositories {
-    		jcenter()
-  	}
-  	dependencies {
-    		// classpath "org.jfrog.buildinfo:build-info-extractor-gradle:latest.release"
-    		classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
-  	}
+project(":addressManager-domain") {
+    sonarqube {
+        skipProject = true
+    }
 }
 */
-
-configurations.all {
-	// https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
-	resolutionStrategy {
-		failOnVersionConflict()
-	}
-}
- 
-// can be listed with:
-// > gradle properties
-// => can/should be placed in gradle.properties in master 
-ext {
-	javaEEVersion = '1.0.0.Final'
-	easyMockVersion = '3.1'
-	needleVersion = '2.1'
-	junitVersion = '4.10'
-	slf4jVersion = '1.7.25'
-	hibernateVersion = '4.1.1.Final'
-	hibernateValidationVersion = '4.2.0.Final'
-	hasqldbVersion = '2.2.6'
-	seamSecurityVersion = '3.1.0.Final'
-	jodaTimeVersion = '2.1'
-	prettyFacesVersion = '3.3.0'
-	richFacesVersion = '4.0.0.Final'
-}
 
 // (common plugins, tasks and properties for all subprojects
 subprojects {
 
+	// https://docs.gradle.org/current/userguide/eclipse_plugin.html
+	apply plugin: 'eclipse-wtp'
 	apply plugin: "java"
 	apply from: "$rootProject.projectDir/corporate/corporate.master.gradle"
 	
@@ -84,6 +164,7 @@ subprojects {
 	    jcenter()
 	    mavenCentral()
 	    
+	    maven { url "https://mvnrepository.com/repos/jboss-releases/" }
 	    maven { url "http://central.maven.org/maven2/" }
 	    maven { url "${artifactory_releases_url}" }
 	    maven { url "${artifactory_snapshots_url}" }
@@ -104,6 +185,44 @@ subprojects {
     		options.bootClasspath = "$JDK7_HOME/jre/lib/rt.jar"
 	} 
 	*/
+	
+	test {
+	    jacoco {
+	        append = true
+	        destinationFile = file("${rootProject.buildDir}/jacoco/jacocoTest.exec")
+	    }
+	}
+	
+	integrationTest {
+	    jacoco {
+	        append = true
+	        destinationFile = file("${rootProject.buildDir}/jacoco/jacocoTest-it.exec")
+	    }
+	}
+	
+	sonarqube {
+	    properties {
+       		property "sonar.sourceEncoding", "UTF-8"
+	    		// https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle
+	        property "sonar.tests", sourceSets.integrationTest.allSource.srcDirs + sourceSets.test.allSource.srcDirs
+	        // properties["sonar.tests"] += sourceSets.integrationTest.allSource.srcDirs
+	        // -- https://stackoverflow.com/questions/41429841/cross-module-code-coverage-with-jacoco-and-gradle-multi-module-project
+	        // Es gibt verschiedene Wege die Jacoco-Ergebnisse zusammen zu fassen. Zum einen kann das
+	        // Sonar selbst machen - aber das Ergebnis stimmt nicht. Zum Beispiel greift die Testabdeckung 
+	        // für das Domain-Projekt nicht. Daher habe ich das hier rekonfiguriert, sodass ALLE Projekte
+	        // in dieselbe jacocoTest.exec schreiben und die Ergebnisse akkumulieren.  
+	        property "sonar.junit.reportPaths", "${buildDir}/test-results/test,${buildDir}/test-results/integrationTest"
+	        // property "sonar.jacoco.reportPaths", "${buildDir}/jacoco/jacocoTest.exec,${rootProject.buildDir}/jacoco/jacocoTest-it.exec"
+	    }
+	}
+	
+	eclipse {
+	    classpath {
+	        plusConfigurations.add configurations.integrationTestCompile
+	        plusConfigurations.add configurations.integrationTestRuntime
+	    }
+	} 
+	
 }
 
 /*
@@ -122,3 +241,36 @@ def loadConfiguration() {
 	def config = new ConfigSlurper(environment).parse(configFile.toURI().toURL())
 	project.ext.set('environment', config)
 }
+
+task printSourceSets {
+	doLast {
+		def sources = [
+			sourceSets.main,
+			sourceSets.test
+		]
+		println sourceSets
+		// sources*.allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
+		println "sources: " +  sources // .allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
+		println "sources*.allSource: " +  sources*.allSource
+		println "sources*.allSource*.srcDirs: " +  sources*.allSource*.srcDirs
+		println "sources*.allSource*.srcDirs.flatten(): " +  sources*.allSource*.srcDirs.flatten()
+		// .allSource*.srcDirs.flatten().each { File srcDir -> println "creating source folder: $srcDir" srcDir.mkdirs() }
+		subprojects.each { p -> println "project: " + p.path  + ", sourceSets: " + p.sourceSets}
+		println ""
+		subprojects.each { p -> println "project: " + p.path  + ", sourceSets.integrationTest.allSource.srcDirs: " + p.sourceSets.integrationTest.allSource.srcDirs}
+		println "rootProject.subprojects: " + rootProject.subprojects  // -> java.util.TreeSet
+		
+		// def addressManagerDomain = rootProject.subprojects.findAll { p -> p.getName() == "addressManager-domain" }.iterator().next();
+		def addressManagerDomain = project(":addressManager-domain")
+		println "rootProject.subprojects [addressManager-domain]: " + addressManagerDomain
+		println "addressManagerDomain.sourceSets.main.allSource.srcDirs" + addressManagerDomain.sourceSets.main.allSource.srcDirs
+	}
+}
+
+task printJacoco {
+	doLast {
+		println "test.testResultsDir:  " + "${project.testReportDir} "
+	  	// println "Dollar{configurations.jacoco.asPath}: " + "${configurations.jacocoAgent.asPath}"   
+	}
+ }
+
